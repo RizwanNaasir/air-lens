@@ -1,0 +1,44 @@
+<Page
+    x:Class="AirLens.App.Pages.VirtualCameraPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:tk="using:CommunityToolkit.WinUI.Controls">
+
+    <ScrollViewer>
+        <StackPanel Padding="{StaticResource PagePadding}" Spacing="{StaticResource SettingsCardSpacing}" MaxWidth="1000" HorizontalAlignment="Stretch">
+            <TextBlock Text="Virtual camera" Style="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,16" />
+
+            <InfoBar x:Name="NotInstalledBar" Severity="Warning" IsClosable="False" Margin="0,0,0,12"
+                     Title="The virtual camera isn't installed."
+                     Message="Run AirLens Setup again to add it. It needs administrator rights once." />
+
+            <tk:SettingsCard Header="Virtual camera" Description="Apps list it as “AirLens (Windows Virtual Camera)”">
+                <tk:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE714;" /></tk:SettingsCard.HeaderIcon>
+                <ToggleSwitch x:Name="VcamToggle" Toggled="OnVcamToggled" AutomationProperties.Name="Virtual camera" />
+            </tk:SettingsCard>
+
+            <tk:SettingsCard x:Name="UseCard" Header="In use">
+                <tk:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE7B3;" /></tk:SettingsCard.HeaderIcon>
+            </tk:SettingsCard>
+
+            <TextBlock Text="Picture" Style="{StaticResource SectionHeaderTextBlockStyle}" />
+
+            <!-- Mirror, rotate, zoom, framing and hide; the same controls as on Home (built in code). -->
+            <StackPanel x:Name="PicturePanel" Spacing="{StaticResource SettingsCardSpacing}" />
+
+            <TextBlock Text="About the picture" Style="{StaticResource SectionHeaderTextBlockStyle}" />
+
+            <tk:SettingsCard Header="Output" Description="The size the app asks for (1920 × 1080 unless it asks otherwise), at the phone's frame rate. Framing above decides between bars and cropping.">
+                <tk:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE740;" /></tk:SettingsCard.HeaderIcon>
+            </tk:SettingsCard>
+
+            <tk:SettingsCard Header="Works with" Description="Teams, Zoom, Google Meet in Chrome or Edge, OBS (as a Video Capture Device) and the Windows Camera app">
+                <tk:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE71D;" /></tk:SettingsCard.HeaderIcon>
+            </tk:SettingsCard>
+
+            <tk:SettingsCard Header="Lowest delay for calls" Description="Choose 1080p · Lowest delay on Home. The camera's output is 1080p anyway, and that preset has the shortest delay.">
+                <tk:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE945;" /></tk:SettingsCard.HeaderIcon>
+            </tk:SettingsCard>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

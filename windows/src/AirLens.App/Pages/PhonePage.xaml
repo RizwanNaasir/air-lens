@@ -1,0 +1,40 @@
+<Page
+    x:Class="AirLens.App.Pages.PhonePage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:tk="using:CommunityToolkit.WinUI.Controls">
+
+    <ScrollViewer>
+        <StackPanel Padding="{StaticResource PagePadding}" Spacing="{StaticResource SettingsCardSpacing}" MaxWidth="1000" HorizontalAlignment="Stretch">
+            <TextBlock Text="Phone" Style="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,16" />
+
+            <tk:SettingsCard x:Name="DeviceCard" Header="No phone connected">
+                <tk:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE8EA;" /></tk:SettingsCard.HeaderIcon>
+                <Button x:Name="ConnectionButton" Click="OnConnectionButtonClick" />
+            </tk:SettingsCard>
+
+            <TextBlock Text="Connection" Style="{StaticResource SectionHeaderTextBlockStyle}" />
+
+            <tk:SettingsCard Header="Connect automatically" Description="Look for the phone as soon as AirLens starts">
+                <tk:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE7E8;" /></tk:SettingsCard.HeaderIcon>
+                <ToggleSwitch x:Name="AutoConnectToggle" Toggled="OnAutoConnectToggled" AutomationProperties.Name="Connect automatically" />
+            </tk:SettingsCard>
+
+            <tk:SettingsCard Header="USB" Description="Used first whenever the phone is on the cable: lowest delay. AirLens sets up the adb link by itself.">
+                <tk:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE88E;" /></tk:SettingsCard.HeaderIcon>
+            </tk:SettingsCard>
+
+            <tk:SettingsCard Header="Wi-Fi address" Description="Used when there is no cable. AirLens finds your phone on the network and keeps this up to date.">
+                <tk:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE701;" /></tk:SettingsCard.HeaderIcon>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBox x:Name="HostBox" PlaceholderText="Phone's IP address" Width="160" AutomationProperties.Name="Wi-Fi address" />
+                    <Button Content="Save and connect" Click="OnSaveHostClick" />
+                </StackPanel>
+            </tk:SettingsCard>
+
+            <tk:SettingsCard x:Name="LinkCard" Header="Link">
+                <tk:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE9D9;" /></tk:SettingsCard.HeaderIcon>
+            </tk:SettingsCard>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

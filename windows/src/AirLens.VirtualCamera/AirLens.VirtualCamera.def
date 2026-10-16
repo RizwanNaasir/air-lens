@@ -1,0 +1,7 @@
+; The LIBRARY name comes from the linker output. The AirLensVCam_* functions are exported with
+; __declspec(dllexport) in Registration.cpp.
+EXPORTS
+    DllGetClassObject   PRIVATE
+    DllCanUnloadNow     PRIVATE
+    DllRegisterServer   PRIVATE
+    DllUnregisterServer PRIVATE

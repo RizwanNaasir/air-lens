@@ -1,0 +1,60 @@
+# Android / Gradle
+android/.gradle/
+android/.kotlin/
+android/build/
+android/app/build/
+android/app/release/
+android/local.properties
+android/.idea/
+android/captures/
+*.iml
+*.apk
+*.aab
+
+# .NET
+windows/**/bin/
+windows/**/obj/
+windows/.vs/
+**/.vs/
+*.user
+TestResults/
+*.binlog
+
+# Native build output
+windows/src/AirLens.VirtualCamera/bin/
+windows/src/AirLens.VirtualCamera/obj/
+windows/src/AirLens.VirtualCamera/x64/
+
+# Third-party binaries supplied locally, never committed
+windows/src/AirLens.App/ffmpeg/
+windows/src/AirLens.App/adb/
+
+# Setup builds
+windows/installer/out/
+
+# Captures and diagnostics
+*.h264
+*.h265
+airlens.log*
+receiver.log*
+device-report.txt
+
+# Keys and signing material: never in the repo
+*.jks
+*.keystore
+*.pem
+*.key
+*.p12
+*.pfx
+*.snk
+.env
+.env.*
+
+# Editor, OS and assistant clutter
+.idea/
+.vscode/
+.claude/
+.remember/
+Thumbs.db
+desktop.ini
+.DS_Store

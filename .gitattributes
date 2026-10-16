@@ -1,0 +1,13 @@
+# Normalise text to LF in the repo; check out with the platform's endings.
+* text=auto
+
+# Shell scripts must stay LF, Windows scripts CRLF, wherever they are checked out.
+android/gradlew text eol=lf
+*.sh text eol=lf
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binaries
+*.jar binary
+*.ico binary
+*.png binary

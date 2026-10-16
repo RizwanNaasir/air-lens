@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    All receiver logic: protocol, socket loop, buffering, hardware decode, virtual-camera bridge.
+    No UI dependency, so it is unit-tested and shared by the WinUI app and the console probe.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <RootNamespace>AirLens.Core</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Bindings for FFmpeg 8.0 shared DLLs (avcodec-62, avutil-60, ...), loaded at runtime. -->
+    <PackageReference Include="FFmpeg.AutoGen" Version="8.0.0" />
+    <PackageReference Include="Vortice.Direct3D11" Version="3.8.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="AirLens.Core.Tests" />
+  </ItemGroup>
+
+</Project>

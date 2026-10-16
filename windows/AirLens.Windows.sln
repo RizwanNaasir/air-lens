@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3D107832-0C94-413D-B181-7CAF20515C35}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AirLens.Core", "src\AirLens.Core\AirLens.Core.csproj", "{CBD62F33-5F63-4D2E-AA88-529E0C8969FF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{7CB67B9C-DA25-40C7-8EA6-3AA05FD07D62}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AirLens.Core.Tests", "tests\AirLens.Core.Tests\AirLens.Core.Tests.csproj", "{FBB98DA9-CCA6-4CE2-8F75-FB5ADD0EC874}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AirLens.Probe", "src\AirLens.Probe\AirLens.Probe.csproj", "{2F479345-2825-400D-8A0F-CDFE47732724}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AirLens.App", "src\AirLens.App\AirLens.App.csproj", "{658DDF55-9F0E-4FCF-AF50-CE947F5C688D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CBD62F33-5F63-4D2E-AA88-529E0C8969FF}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{CBD62F33-5F63-4D2E-AA88-529E0C8969FF}.Debug|Any CPU.Build.0 = Debug|x64
+		{CBD62F33-5F63-4D2E-AA88-529E0C8969FF}.Release|Any CPU.ActiveCfg = Release|x64
+		{CBD62F33-5F63-4D2E-AA88-529E0C8969FF}.Release|Any CPU.Build.0 = Release|x64
+		{FBB98DA9-CCA6-4CE2-8F75-FB5ADD0EC874}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{FBB98DA9-CCA6-4CE2-8F75-FB5ADD0EC874}.Debug|Any CPU.Build.0 = Debug|x64
+		{FBB98DA9-CCA6-4CE2-8F75-FB5ADD0EC874}.Release|Any CPU.ActiveCfg = Release|x64
+		{FBB98DA9-CCA6-4CE2-8F75-FB5ADD0EC874}.Release|Any CPU.Build.0 = Release|x64
+		{2F479345-2825-400D-8A0F-CDFE47732724}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{2F479345-2825-400D-8A0F-CDFE47732724}.Debug|Any CPU.Build.0 = Debug|x64
+		{2F479345-2825-400D-8A0F-CDFE47732724}.Release|Any CPU.ActiveCfg = Release|x64
+		{2F479345-2825-400D-8A0F-CDFE47732724}.Release|Any CPU.Build.0 = Release|x64
+		{658DDF55-9F0E-4FCF-AF50-CE947F5C688D}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{658DDF55-9F0E-4FCF-AF50-CE947F5C688D}.Debug|Any CPU.Build.0 = Debug|x64
+		{658DDF55-9F0E-4FCF-AF50-CE947F5C688D}.Release|Any CPU.ActiveCfg = Release|x64
+		{658DDF55-9F0E-4FCF-AF50-CE947F5C688D}.Release|Any CPU.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{CBD62F33-5F63-4D2E-AA88-529E0C8969FF} = {3D107832-0C94-413D-B181-7CAF20515C35}
+		{FBB98DA9-CCA6-4CE2-8F75-FB5ADD0EC874} = {7CB67B9C-DA25-40C7-8EA6-3AA05FD07D62}
+		{2F479345-2825-400D-8A0F-CDFE47732724} = {3D107832-0C94-413D-B181-7CAF20515C35}
+		{658DDF55-9F0E-4FCF-AF50-CE947F5C688D} = {3D107832-0C94-413D-B181-7CAF20515C35}
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,51 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <!-- Windows App SDK 1.8 and Community Toolkit 8.2 need C#/WinRT 2.2 (WinRT.Runtime 2.2). -->
+    <WindowsSdkPackageVersion>10.0.19041.57</WindowsSdkPackageVersion>
+    <RootNamespace>AirLens.App</RootNamespace>
+    <UseWinUI>true</UseWinUI>
+    <!-- Unpackaged, self-contained Windows App SDK: runs from a folder, no MSIX or runtime install. -->
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\AirLens.ico</ApplicationIcon>
+    <AssemblyTitle>AirLens</AssemblyTitle>
+    <!-- Only English .NET satellite assemblies; the UI is English. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <EnableMsixTooling>true</EnableMsixTooling>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.Segmented" Version="8.2.251219" />
+    <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.2.251219" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" Version="1.8.260921001" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
+    <PackageReference Include="Vortice.D3DCompiler" Version="3.8.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AirLens.Core\AirLens.Core.csproj" />
+  </ItemGroup>
+
+  <!-- Title bar and taskbar icon (AppWindow.SetIcon reads it from disk). -->
+  <ItemGroup>
+    <Content Include="Assets\AirLens.ico" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <!--
+    FFmpeg 8.0 shared DLLs go in .\ffmpeg next to the exe (not committed). The decoder only calls
+    libavcodec and libavutil, and libavcodec imports libswresample; the other libraries of a shared
+    build (avformat, avfilter, avdevice, swscale; ~115 MB) are left out of the output.
+  -->
+  <ItemGroup>
+    <None Include="ffmpeg\avcodec-*.dll;ffmpeg\avutil-*.dll;ffmpeg\swresample-*.dll" CopyToOutputDirectory="PreserveNewest" Link="ffmpeg\%(Filename)%(Extension)" Condition="Exists('ffmpeg')" />
+  </ItemGroup>
+
+</Project>
