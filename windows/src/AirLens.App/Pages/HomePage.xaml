@@ -8,7 +8,46 @@
         <StackPanel Padding="{StaticResource PagePadding}" Spacing="16">
             <TextBlock Text="Home" Style="{StaticResource TitleTextBlockStyle}" />
 
-            <InfoBar x:Name="Status" IsOpen="True" IsClosable="False" />
+            <!-- Two answers, worked out once in ConnectionStatus: is a phone there, and is it streaming here? -->
+            <Border Background="{ThemeResource CardBackgroundFillColorDefaultBrush}" BorderBrush="{ThemeResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="1" CornerRadius="8" Padding="20,14">
+                <Grid x:Name="StatusGrid" ColumnSpacing="40" RowSpacing="14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Grid ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Ellipse x:Name="PhoneDot" Width="10" Height="10" VerticalAlignment="Top" Margin="0,25,0,0" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock Text="Phone" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBlock x:Name="PhoneStatusTitle" Style="{StaticResource BodyStrongTextBlockStyle}" TextWrapping="Wrap"
+                                       AutomationProperties.LiveSetting="Polite" />
+                            <TextBlock x:Name="PhoneStatusDetail" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+                    <Grid x:Name="StreamStatusBlock" Grid.Column="1" ColumnSpacing="12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <Ellipse x:Name="StreamDot" Width="10" Height="10" VerticalAlignment="Top" Margin="0,25,0,0" />
+                        <StackPanel Grid.Column="1" Spacing="2">
+                            <TextBlock Text="Stream" Style="{StaticResource CaptionTextBlockStyle}" Foreground="{ThemeResource TextFillColorSecondaryBrush}" />
+                            <TextBlock x:Name="StreamStatusTitle" Style="{StaticResource BodyStrongTextBlockStyle}" TextWrapping="Wrap"
+                                       AutomationProperties.LiveSetting="Polite" />
+                            <TextBlock x:Name="StreamStatusDetail" Foreground="{ThemeResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" />
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+            </Border>
             <InfoBar x:Name="HeatBar" Severity="Warning" IsOpen="False" IsClosable="False" />
 
             <Grid x:Name="Columns" ColumnSpacing="24" RowSpacing="8">
@@ -104,7 +143,7 @@
                         <Button Content="Disconnect" Click="OnDisconnectClick" />
                     </tk:SettingsCard>
 
-                    <tk:SettingsCard x:Name="StoppedCard" Header="Disconnected" Description="AirLens is not looking for your phone" Visibility="Collapsed">
+                    <tk:SettingsCard x:Name="StoppedCard" Header="Stream is off" Description="AirLens isn't looking for your phone" Visibility="Collapsed">
                         <tk:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE8EA;" /></tk:SettingsCard.HeaderIcon>
                         <Button Content="Connect" Style="{StaticResource AccentButtonStyle}" Click="OnConnectClick" />
                     </tk:SettingsCard>

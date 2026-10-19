@@ -18,6 +18,9 @@ public sealed class AppSettings
     /// </summary>
     public string PhoneId { get; set; } = "";
 
+    /// <summary>That phone's name ("HUAWEI P30"), for the status before it connects.</summary>
+    public string PhoneName { get; set; } = "";
+
     /// <summary>Turn the virtual camera on at launch (it was on last time).</summary>
     public bool VirtualCamera { get; set; }
 
@@ -32,6 +35,12 @@ public sealed class AppSettings
 
     /// <summary>"auto", "d3d11va", "cuda" or "software".</summary>
     public string Decoder { get; set; } = "auto";
+
+    /// <summary>Look for a new version about once a day, shortly after AirLens starts. Installing always asks.</summary>
+    public bool CheckForUpdates { get; set; } = true;
+
+    /// <summary>When the update check last reached the release feed.</summary>
+    public DateTimeOffset? LastUpdateCheck { get; set; }
 
     private static readonly string FilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AirLens", "settings.json");

@@ -771,8 +771,35 @@ reconnects if it was connected when closed. The setup is 314 MB (119 MB zipped).
 libavcodec (101 MB) and the .NET and Windows App SDK runtimes. Only the three FFmpeg libraries the
 decoder loads are shipped: avcodec, avutil and swresample.
 
-Before giving the setup to other people: the gyan.dev "full" FFmpeg build is GPL-licensed, so
-shipping it with a closed-source app needs an LGPL build instead (decode only needs avcodec with
-its built-in H.264/HEVC decoders). The scripts are unsigned, so SmartScreen will warn on a
+The setup ships an LGPL FFmpeg build with its licence and `THIRD-PARTY-NOTICES.txt`;
+`build.ps1` refuses a GPL build (§1). The scripts are unsigned, so SmartScreen will warn on a
 downloaded copy. USB mode also expects adb on the PC (Android platform-tools, or one that another
 app installed; see §4).
+
+**Updates from Settings.** The app keeps itself current from the public GitHub releases
+(`AirLens.Core/Updates`, `AirLens.App/Updates/UpdateService.cs`):
+
+- **Check.** About once a day, 20 s after start-up (Settings › Check for updates automatically,
+  on by default), or on demand, it reads GitHub's latest-release API. Drafts and pre-releases are
+  never "latest". The tag (`v0.1.1`) is compared with the app's own version, all four parts filled
+  in, because `System.Version` ranks 0.1.0 below 0.1.0.0. A newer release puts a badge on Settings.
+- **Install** is always the user's click, after a dialog that warns that the virtual camera stops
+  for a few seconds. The app downloads `AirLens-<version>-windows-x64.zip` and checks its size and
+  SHA-256 against the release before anything runs. The SHA-256 comes from GitHub's own asset
+  `digest`, or a `<sha256>  <file>` line in the notes as a fallback; a release with neither is
+  refused, and a file that does not match is deleted. Then it unpacks the zip and runs its
+  `Setup.cmd`. That is the same installer as a manual install: Windows asks for administrator
+  rights once (Program Files and the machine-wide camera need them, so a silent update is not
+  possible with this install layout), the installer closes AirLens, updates it in place and starts
+  it again. A declined prompt or failed install is reported in Settings. Only HTTPS is accepted,
+  except a feed on this PC (`--update-feed http://127.0.0.1:…/latest.json`) for testing. Old
+  update files are removed at the next start.
+- **Verified** on this PC with a local feed: 0.1.0 found 0.1.0.1, refused a copy whose SHA-256 was
+  wrong (nothing kept, app still running), then downloaded the real one, ran setup after the
+  Windows prompt and came back as 0.1.0.1 from Program Files. That install then checked the real
+  GitHub feed and reported "up to date".
+- **Releasing an update:** raise `<Version>` in `windows/Directory.Build.props`, run `build.ps1`,
+  and attach `out\AirLens-<version>-windows-x64.zip` to a GitHub release tagged `v<version>`
+  under that exact name. Installed copies offer it within a day. `-Version 0.1.0.1` builds a test
+  package without changing the project's version. Copies of 0.1.0 predate the updater and need
+  the next version installed by hand once.

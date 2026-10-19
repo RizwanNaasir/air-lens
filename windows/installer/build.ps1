@@ -7,10 +7,14 @@
   Needs the .NET 8 SDK, Visual Studio 2022 Build Tools with Desktop C++ (for the camera DLL; pass
   -SkipNative to reuse an existing build), and an FFmpeg 8.x LGPL shared build (DLLs and LICENSE.txt) in src\AirLens.App\ffmpeg.
 
+  The zip is the release file the app's updater installs: upload it to a GitHub release tagged
+  v<version> under the name it has here, AirLens-<version>-windows-x64.zip.
+
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File windows\installer\build.ps1
+  powershell -ExecutionPolicy Bypass -File windows\installer\build.ps1 -SkipNative -Version 0.1.0.1   # a test build
 #>
-param([switch]$SkipNative, [switch]$NoZip)
+param([switch]$SkipNative, [switch]$NoZip, [string]$Version)
 $ErrorActionPreference = "Stop"
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $appProject = Join-Path $root "src\AirLens.App\AirLens.App.csproj"
@@ -31,13 +35,13 @@ if (-not $SkipNative) {
 }
 if (-not (Test-Path $dll)) { throw "virtual camera DLL not found: $dll" }
 
-$version = (Select-Xml -Path (Join-Path $root "Directory.Build.props") -XPath "//Version").Node.InnerText
+$version = if ($Version) { $Version } else { (Select-Xml -Path (Join-Path $root "Directory.Build.props") -XPath "//Version").Node.InnerText }
 $out = Join-Path $PSScriptRoot "out"
 $stage = Join-Path $out "AirLens-$version"
 if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 
 Write-Host "Publishing the app..."
-& dotnet publish $appProject -c Release -r win-x64 --self-contained true -o (Join-Path $stage "app") -nologo -v:minimal
+& dotnet publish $appProject -c Release -r win-x64 --self-contained true -o (Join-Path $stage "app") -nologo -v:minimal "-p:Version=$version"
 if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed" }
 Get-ChildItem (Join-Path $stage "app") -Recurse -Filter *.pdb | Remove-Item -Force
 if (-not (Test-Path (Join-Path $stage "app\ffmpeg\avcodec-*.dll"))) { throw "publish output has no FFmpeg DLLs" }
@@ -53,7 +57,7 @@ Copy-Item (Join-Path $PSScriptRoot "install.ps1"), (Join-Path $PSScriptRoot "uni
 $mb = [math]::Round((Get-ChildItem $stage -Recurse -File | Measure-Object Length -Sum).Sum / 1MB)
 Write-Host "Setup folder: $stage ($mb MB)"
 if (-not $NoZip) {
-    $zip = Join-Path $out "AirLens-$version-win-x64.zip"
+    $zip = Join-Path $out "AirLens-$version-windows-x64.zip"
     Compress-Archive -Path $stage -DestinationPath $zip -Force
     Write-Host "Zip: $zip ($([math]::Round((Get-Item $zip).Length / 1MB)) MB)"
 }

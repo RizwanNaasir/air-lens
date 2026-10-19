@@ -23,6 +23,31 @@
                 <Button Content="Open folder" Click="OnOpenLogsClick" />
             </tk:SettingsCard>
 
+            <TextBlock Text="Updates" Style="{StaticResource SectionHeaderTextBlockStyle}" />
+
+            <!-- Status and actions; texts and visibility are set from UpdateService (code-behind). -->
+            <tk:SettingsCard x:Name="UpdateCard" Header="AirLens">
+                <tk:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE895;" /></tk:SettingsCard.HeaderIcon>
+                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <ProgressRing x:Name="UpdateRing" Width="20" Height="20" IsActive="False" Visibility="Collapsed" />
+                    <ProgressBar x:Name="UpdateProgress" Width="160" Minimum="0" Maximum="1" VerticalAlignment="Center"
+                                 Visibility="Collapsed" AutomationProperties.Name="Download progress" />
+                    <HyperlinkButton x:Name="WhatsNewLink" Content="What's new" Visibility="Collapsed" />
+                    <Button x:Name="CancelButton" Content="Cancel" Visibility="Collapsed" Click="OnCancelUpdateClick" />
+                    <Button x:Name="CheckButton" Content="Check for updates" Click="OnCheckUpdatesClick" />
+                    <Button x:Name="InstallButton" Content="Update now" Style="{StaticResource AccentButtonStyle}"
+                            Visibility="Collapsed" Click="OnInstallUpdateClick" />
+                </StackPanel>
+            </tk:SettingsCard>
+
+            <tk:SettingsCard Header="Check for updates automatically"
+                             Description="About once a day, shortly after AirLens starts. Installing always asks you first.">
+                <tk:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE823;" /></tk:SettingsCard.HeaderIcon>
+                <ToggleSwitch x:Name="AutoCheckToggle" Toggled="OnAutoCheckToggled" AutomationProperties.Name="Check for updates automatically" />
+            </tk:SettingsCard>
+
+            <InfoBar x:Name="UpdateError" Severity="Error" IsClosable="True" IsOpen="False" Title="Update" />
+
             <TextBlock Text="About" Style="{StaticResource SectionHeaderTextBlockStyle}" />
 
             <tk:SettingsCard x:Name="AboutCard" Header="AirLens">

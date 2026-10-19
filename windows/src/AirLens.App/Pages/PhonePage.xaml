@@ -8,8 +8,13 @@
         <StackPanel Padding="{StaticResource PagePadding}" Spacing="{StaticResource SettingsCardSpacing}" MaxWidth="1000" HorizontalAlignment="Stretch">
             <TextBlock Text="Phone" Style="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,16" />
 
-            <tk:SettingsCard x:Name="DeviceCard" Header="No phone connected">
-                <tk:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE8EA;" /></tk:SettingsCard.HeaderIcon>
+            <!-- The same two lines as Home (ConnectionStatus): is a phone there, is it streaming here? -->
+            <tk:SettingsCard x:Name="DeviceCard" Header="Phone">
+                <tk:SettingsCard.HeaderIcon><FontIcon x:Name="PhoneIcon" Glyph="&#xE8EA;" /></tk:SettingsCard.HeaderIcon>
+            </tk:SettingsCard>
+
+            <tk:SettingsCard x:Name="StreamCard" Header="Stream">
+                <tk:SettingsCard.HeaderIcon><FontIcon x:Name="StreamIcon" Glyph="&#xE714;" /></tk:SettingsCard.HeaderIcon>
                 <Button x:Name="ConnectionButton" Click="OnConnectionButtonClick" />
             </tk:SettingsCard>
 

@@ -1,6 +1,7 @@
 using AirLens.App.Rendering;
 using AirLens.Core.Pipeline;
 using AirLens.Core.Protocol;
+using AirLens.Core.Status;
 using AirLens.Core.Transport;
 using AirLens.Core.VirtualCamera;
 using CommunityToolkit.WinUI.Controls;
@@ -86,6 +87,13 @@ public sealed partial class HomePage : Page
         Columns.ColumnDefinitions[1].MinWidth = narrow ? 0 : 400;
         Columns.ColumnSpacing = narrow ? 0 : 24;
         RightColumn.Margin = narrow ? new Thickness(0, 16, 0, 0) : new Thickness(0);
+
+        // Phone and Stream side by side, or stacked when there is no room for two columns of text.
+        bool stack = width < 720;
+        Grid.SetColumn(StreamStatusBlock, stack ? 0 : 1);
+        Grid.SetRow(StreamStatusBlock, stack ? 1 : 0);
+        StatusGrid.ColumnDefinitions[1].Width = stack ? new GridLength(0) : new GridLength(1, GridUnitType.Star);
+        StatusGrid.ColumnSpacing = stack ? 0 : 40;
     }
 
     private void Refresh()
@@ -101,17 +109,23 @@ public sealed partial class HomePage : Page
         _updating = true;
         try
         {
-            UpdateStatus(s, running, streaming, connected, name, via);
+            var status = _app.Status;
+            UpdateStatus(status);
 
             UsbCard.Visibility = Show(running && !connected);
-            UsbCard.Description = s?.Status.Contains("No phone found", StringComparison.Ordinal) == true
-                ? "No phone on the cable yet. Is USB debugging on?"
-                : "Looking for a phone on the cable";
+            UsbCard.Description = _app.Usb switch
+            {
+                UsbPresence.Ready => "Phone on the cable. Press Start streaming on the phone",
+                UsbPresence.Unauthorized => "Accept the USB debugging prompt on the phone",
+                UsbPresence.Unresponsive => "USB debugging isn't answering. Unplug the cable and plug it back in",
+                UsbPresence.NoAdb => "Needs Android's platform tools (adb) on this PC",
+                _ => "No phone on the cable. Is USB debugging on?",
+            };
             WifiCard.Visibility = Show(!connected);
             UpdateFoundPhones(connected);
             PhoneCard.Visibility = Show(connected);
             PhoneCard.Header = name;
-            PhoneCard.Description = PhoneDescription(s, device, via);
+            PhoneCard.Description = status.Phone.Detail;
             // "Your phone" listed above already offers Connect; one button is enough.
             bool mineListed = _app.Phones.Any(p => p.Id == _app.Settings.PhoneId);
             StoppedCard.Visibility = Show(!running && !mineListed);
@@ -137,7 +151,7 @@ public sealed partial class HomePage : Page
 
             bool off = PreviewOff;
             PreviewPlaceholder.Visibility = Show(!streaming || off);
-            PreviewPlaceholderText.Text = !running ? "Disconnected"
+            PreviewPlaceholderText.Text = !running ? "Stream is off"
                 : streaming && off ? "Preview is off while the virtual camera is on, so the PC and the phone don't draw every frame twice"
                 : connected ? "Waiting for the first picture" : "The phone's picture appears here";
             ShowPreviewButton.Visibility = Show(streaming && off);
@@ -166,46 +180,15 @@ public sealed partial class HomePage : Page
 
     private bool PreviewOff => _app.VirtualCameraOn && !_previewAnyway;
 
-    private static string PhoneDescription(ReceiverStats? s, DeviceState? device, string via)
+    /// <summary>The Phone and Stream lines (ConnectionStatus), the same ones the Phone page shows.</summary>
+    private void UpdateStatus(ConnectionStatus status)
     {
-        var parts = new List<string> { via };
-        if (s is { RttMs: > 0 } st) parts.Add($"round trip {st.RttMs:0} ms");
-        if (device?.Heat is { TempC: { } temp } heat) parts.Add($"{temp:0} °C" + (heat.IsHot ? ", hot" : ""));
-        return string.Join(" · ", parts);
-    }
-
-    private void UpdateStatus(ReceiverStats? s, bool running, bool streaming, bool connected, string name, string via)
-    {
-        if (_app.StartError is { } error)
-        {
-            Status.Severity = InfoBarSeverity.Error;
-            Status.Title = "AirLens can't start the video decoder.";
-            Status.Message = error;
-        }
-        else if (!running)
-        {
-            Status.Severity = InfoBarSeverity.Informational;
-            Status.Title = "Disconnected.";
-            Status.Message = "AirLens is not looking for your phone. Press Connect to start again.";
-        }
-        else if (streaming)
-        {
-            Status.Severity = InfoBarSeverity.Success;
-            Status.Title = $"Live from {name} over {via}.";
-            Status.Message = _app.StreamingSince is { } since ? $"Streaming for {Elapsed(DateTime.Now - since)}." : "";
-        }
-        else if (connected)
-        {
-            Status.Severity = InfoBarSeverity.Informational;
-            Status.Title = $"Connected to {name}.";
-            Status.Message = "Waiting for the first picture.";
-        }
-        else
-        {
-            Status.Severity = InfoBarSeverity.Informational;
-            Status.Title = "No phone connected.";
-            Status.Message = "Open AirLens on the phone and press Start streaming. Over USB it connects by itself.";
-        }
+        PhoneStatusTitle.Text = status.Phone.Title;
+        PhoneStatusDetail.Text = status.Phone.Detail;
+        PhoneDot.Fill = StatusBrushes.For(status.Phone.Tone);
+        StreamStatusTitle.Text = status.Stream.Title;
+        StreamStatusDetail.Text = status.Stream.Detail;
+        StreamDot.Fill = StatusBrushes.For(status.Stream.Tone);
     }
 
     /// <summary>A warning while the phone is hot, and what AirLens did about it.</summary>
@@ -479,7 +462,4 @@ public sealed partial class HomePage : Page
     };
 
     private static string Sentence(string s) => s.Length == 0 ? s : char.ToUpperInvariant(s[0]) + s[1..];
-
-    private static string Elapsed(TimeSpan t) =>
-        t.TotalHours >= 1 ? $"{(int)t.TotalHours}:{t.Minutes:00}:{t.Seconds:00}" : $"{t.Minutes}:{t.Seconds:00}";
 }

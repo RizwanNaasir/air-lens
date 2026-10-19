@@ -28,20 +28,14 @@ public sealed partial class PhonePage : Page
         _updating = true;
         var s = _app.Stats;
         bool connected = s?.State is ReceiverState.Connected or ReceiverState.Streaming;
-        if (connected && s is { } st)
-        {
-            DeviceCard.Header = st.Device?.Device ?? "Phone";
-            string lens = st.Device?.ActiveLens?.Label is { } l ? $"{l} lens · " : "";
-            DeviceCard.Description = st.Stream is { } info
-                ? $"{lens}{(info.Codec == Core.Protocol.VideoCodec.Hevc ? "H.265" : "H.264")} · {info.Width} × {info.Height} at {info.Fps} fps · {info.BitrateBps / 1e6:0} Mbps"
-                : lens + "connected";
-        }
-        else
-        {
-            DeviceCard.Header = _app.IsRunning ? "Looking for your phone" : "Disconnected";
-            DeviceCard.Description = _app.IsRunning ? "Open AirLens on the phone and press Start streaming" : "AirLens is not looking for your phone";
-        }
-        ConnectionButton.Content = _app.IsRunning ? "Disconnect" : "Connect";
+        var status = _app.Status;
+        DeviceCard.Header = status.Phone.Title;
+        DeviceCard.Description = status.Phone.Detail;
+        PhoneIcon.Foreground = StatusBrushes.For(status.Phone.Tone);
+        StreamCard.Header = status.Stream.Title;
+        StreamCard.Description = status.Stream.Detail;
+        StreamIcon.Foreground = StatusBrushes.For(status.Stream.Tone);
+        ConnectionButton.Content = !_app.IsRunning ? "Connect" : connected ? "Disconnect" : "Stop looking";
         ConnectionButton.Style = _app.IsRunning ? null : (Style)Application.Current.Resources["AccentButtonStyle"];
         AutoConnectToggle.IsOn = _app.Settings.AutoConnect;
         if (HostBox.FocusState == FocusState.Unfocused && HostBox.Text != _app.Settings.Host) HostBox.Text = _app.Settings.Host; // discovery may have moved it

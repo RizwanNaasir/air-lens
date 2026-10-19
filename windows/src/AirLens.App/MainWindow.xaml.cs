@@ -31,6 +31,16 @@ public sealed partial class MainWindow : Window
         }
         ContentFrame.Navigate(typeof(HomePage));
         Closed += (_, _) => App.Controller.Shutdown();
+
+        // An update is waiting: a badge on Settings, where it is installed.
+        App.Controller.Updates.Changed += ShowUpdateBadge;
+        Nav.Loaded += (_, _) => ShowUpdateBadge();
+    }
+
+    private void ShowUpdateBadge()
+    {
+        if (Nav.SettingsItem is NavigationViewItem settings)
+            settings.InfoBadge = App.Controller.Updates.Stage == Updates.UpdateStage.Available ? new InfoBadge() : null;
     }
 
     private void OnNavSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args)

@@ -1,3 +1,5 @@
+using AirLens.App.Updates;
+using AirLens.Core.Status;
 using AirLens.Core.Decoding;
 using AirLens.Core.Pipeline;
 using AirLens.Core.Transport;
@@ -29,8 +31,56 @@ public sealed class AppController
         _timer.Tick += (_, _) => Tick();
         _timer.Start();
         _ = DiscoveryLoopAsync(_discoveryStop.Token);
+        _ = UsbLoopAsync(_discoveryStop.Token);
+        Updates = new UpdateService(ui, Settings);
         Look = new VirtualCameraLook(Settings.CameraMirror, Settings.CameraRotation, Settings.CameraZoom, Settings.CameraFill);
     }
+
+    /// <summary>What is on the USB cable, from ADB every 2 s (cheap: one socket query, no adb.exe run).</summary>
+    public UsbPresence Usb { get; private set; } = UsbPresence.Unknown;
+
+    /// <summary>
+    /// The two statuses every page shows (phone there? streaming here?), from one place so the pages
+    /// never disagree. See <see cref="ConnectionStatus"/>.
+    /// </summary>
+    public ConnectionStatus Status => ConnectionStatus.From(new ConnectionInputs(
+        IsRunning ? Stats : null, IsRunning, StartError, Usb, Phones, Settings.PhoneId, Settings.PhoneName,
+        StreamingSince is { } since ? DateTime.Now - since : null));
+
+    private async Task UsbLoopAsync(CancellationToken ct)
+    {
+        bool adbInstalled = AdbForwarder.Locate() != null;
+        while (!ct.IsCancellationRequested)
+        {
+            var usb = await Task.Run(() => ReadUsb(adbInstalled), ct).ConfigureAwait(true);
+            if (usb != Usb)
+            {
+                Usb = usb;
+                Raise();
+            }
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2), ct).ConfigureAwait(true);
+            }
+            catch (OperationCanceledException)
+            {
+                return;
+            }
+        }
+    }
+
+    private static UsbPresence ReadUsb(bool adbInstalled)
+    {
+        if (!adbInstalled) return UsbPresence.NoAdb;
+        // No ADB server yet means nothing has looked; AirLens starts it on its first USB attempt.
+        if (AdbForwarder.QueryDevices() is not { } devices) return UsbPresence.NoPhone;
+        if (devices.Any(d => d.State == "device")) return UsbPresence.Ready;
+        if (devices.Any(d => d.State == "unauthorized")) return UsbPresence.Unauthorized;
+        return devices.Count > 0 ? UsbPresence.Unresponsive : UsbPresence.NoPhone; // "offline", "authorizing"
+    }
+
+    /// <summary>New versions from the GitHub releases (Settings › Updates).</summary>
+    public UpdateService Updates { get; }
 
     /// <summary>How the virtual camera frames the picture for apps (also shown in the preview).</summary>
     public VirtualCameraLook Look { get; private set; }
@@ -285,6 +335,11 @@ public sealed class AppController
                 Settings.PhoneId = id;
                 Settings.Save();
                 FollowRememberedPhone(Phones);
+            }
+            if (s.Device?.Device is { Length: > 0 } phoneName && phoneName != Settings.PhoneName)
+            {
+                Settings.PhoneName = phoneName;
+                _settingsDirty = true;
             }
         }
         Raise();

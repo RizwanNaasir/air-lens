@@ -6,7 +6,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Company>silow.net</Company>
     <Product>AirLens</Product>
-    <Version>0.1.0</Version>
+    <Version>0.1.1</Version>
     <!-- FFmpeg and the D3D11 interop are 64-bit only. -->
     <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>

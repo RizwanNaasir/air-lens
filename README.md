@@ -49,7 +49,11 @@ debugging on the phone; Wi-Fi needs neither.
 - **Landing page:** `site/` (plain HTML and CSS, no build), live at https://airlens-cyan.vercel.app.
   It is the Vercel project `silow/airlens`; `vercel.json` makes Vercel serve only `site/`, and a push
   that does not touch `site/` skips the deploy. Deploy by hand with `vercel deploy --prod` from `site/`.
-- **Each release:** update the version, links, sizes and SHA-256 sums in `site/index.html`.
+- **Each release:** raise `<Version>` in `windows/Directory.Build.props`, run
+  `windows/installer/build.ps1`, and attach `AirLens-<version>-windows-x64.zip` (its name as built)
+  and the APK to a GitHub release tagged `v<version>`. Installed Windows copies find it within a
+  day and install it from Settings › Updates (one Windows admin prompt). Then update the version,
+  links, sizes and SHA-256 sums in `site/index.html`. Details: `docs/ARCHITECTURE.md` §8.
 
 ## Status
 
