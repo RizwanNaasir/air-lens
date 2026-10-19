@@ -72,6 +72,8 @@ p { margin: 0; }
   color: var(--text); padding: 10px 18px; border: 1px solid var(--line-strong); border-radius: 999px;
 }
 .nav .nav-cta:hover { border-color: var(--text); }
+.nav .nav-icon { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; padding: 0; border-radius: 999px; color: var(--muted); }
+.nav .nav-icon:hover { color: var(--text); background: var(--surface); }
 
 /* ---- Buttons ------------------------------------------------------------------------------- */
 

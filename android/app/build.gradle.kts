@@ -3,6 +3,15 @@ plugins {
     alias(libs.plugins.compose.compiler)
 }
 
+// The release workflow passes the tag as -PappVersion=0.1.2; local builds use this default.
+val appVersion = (findProperty("appVersion") as String?) ?: "0.1.1"
+// 0.1.2 -> 102, 1.4.0 -> 10400: grows with every release, as Android requires for an update.
+val appVersionCode = appVersion.split('.').map { it.toInt() }.let { p -> p[0] * 10000 + p.getOrElse(1) { 0 } * 100 + p.getOrElse(2) { 0 } }
+
+// One signing key for every build anyone installs, or Android refuses to update from one version to
+// the next. The release workflow provides it from repository secrets; without it, the local debug key.
+val signingKeyFile = System.getenv("AIRLENS_KEYSTORE_FILE")?.let { file(it) }?.takeIf { it.exists() }
+
 android {
     namespace = "net.silow.airlens"
     compileSdk = 36
@@ -13,11 +22,27 @@ android {
         // the low-latency Wi-Fi lock. No 4K60-capable phone ships an older release.
         minSdk = 29
         targetSdk = 36
-        versionCode = 2
-        versionName = "0.1.1"
+        versionCode = appVersionCode
+        versionName = appVersion
+    }
+
+    signingConfigs {
+        if (signingKeyFile != null) {
+            create("airlens") {
+                storeFile = signingKeyFile
+                storePassword = System.getenv("AIRLENS_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("AIRLENS_KEY_ALIAS")
+                keyPassword = System.getenv("AIRLENS_KEY_PASSWORD")
+            }
+        }
     }
 
     buildTypes {
+        // The APK that ships is the debug build type (no R8 shrinking to verify yet), signed with the
+        // shared key when one is given.
+        debug {
+            if (signingKeyFile != null) signingConfig = signingConfigs.getByName("airlens")
+        }
         release {
             isMinifyEnabled = true
             isShrinkResources = true

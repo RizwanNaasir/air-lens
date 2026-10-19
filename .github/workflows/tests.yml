@@ -1,0 +1,37 @@
+name: Tests
+
+# Unit tests on every push and pull request that touches the apps. Releases run them again
+# (release.yml) before anything is published.
+
+on:
+  push:
+    branches: [main]
+    paths: ["windows/**", "android/**", ".github/workflows/tests.yml"]
+  pull_request:
+    paths: ["windows/**", "android/**", ".github/workflows/tests.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - run: dotnet test windows/tests/AirLens.Core.Tests -c Release
+
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Unit tests
+        working-directory: android
+        run: ./gradlew testDebugUnitTest

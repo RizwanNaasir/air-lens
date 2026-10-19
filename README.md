@@ -45,15 +45,39 @@ debugging on the phone; Wi-Fi needs neither.
 ## Website and downloads
 
 - **Downloads** are the files on each GitHub release, for example
-  `releases/download/v0.1.0/AirLens-0.1.0-windows-x64.zip` and `AirLens-0.1.0-android.apk`.
-- **Landing page:** `site/` (plain HTML and CSS, no build), live at https://airlens-cyan.vercel.app.
-  It is the Vercel project `silow/airlens`; `vercel.json` makes Vercel serve only `site/`, and a push
-  that does not touch `site/` skips the deploy. Deploy by hand with `vercel deploy --prod` from `site/`.
-- **Each release:** raise `<Version>` in `windows/Directory.Build.props`, run
-  `windows/installer/build.ps1`, and attach `AirLens-<version>-windows-x64.zip` (its name as built)
-  and the APK to a GitHub release tagged `v<version>`. Installed Windows copies find it within a
-  day and install it from Settings › Updates (one Windows admin prompt). Then update the version,
-  links, sizes and SHA-256 sums in `site/index.html`. Details: `docs/ARCHITECTURE.md` §8.
+  `releases/download/v0.1.1/AirLens-0.1.1-windows-x64.zip` and `AirLens-0.1.1-android.apk`.
+- **Landing page:** `site/` (plain HTML, CSS and one small script, no build), live at
+  https://airlens-cyan.vercel.app. Everything it says about the current release (version, links,
+  sizes, SHA-256) comes from `site/release.json`; without it, the buttons go to the latest release
+  on GitHub. It is the Vercel project `silow/airlens`; `vercel.json` makes Vercel serve only
+  `site/`, and a push that does not touch `site/` skips the deploy.
+
+## Releasing (GitHub Actions)
+
+Releases are built on GitHub, not on a PC: `.github/workflows/release.yml` tests and builds both
+apps (the Windows setup with the camera DLL and an LGPL FFmpeg it downloads and verifies, and the
+APK), publishes the release with checksums, then rewrites `site/release.json` on `main`, which
+Vercel deploys. Installed Windows copies find the release within a day (Settings › Updates).
+`.github/workflows/tests.yml` runs the unit tests on every push and pull request.
+
+1. **Once:** give the workflow the Android signing key as repository secrets. It must be the key
+   that signed the earlier APKs (so far this PC's debug keystore), or phones can't update to the
+   new APK. The workflow refuses to publish without it.
+
+   ```powershell
+   $env:GH_TOKEN = gh auth token --user RizwanNaasir
+   [Convert]::ToBase64String([IO.File]::ReadAllBytes("$env:USERPROFILE\.android\debug.keystore")) | gh secret set ANDROID_KEYSTORE_BASE64 --repo RizwanNaasir/air-lens
+   gh secret set ANDROID_KEYSTORE_PASSWORD --repo RizwanNaasir/air-lens --body android
+   gh secret set ANDROID_KEY_ALIAS --repo RizwanNaasir/air-lens --body androiddebugkey
+   gh secret set ANDROID_KEY_PASSWORD --repo RizwanNaasir/air-lens --body android
+   ```
+
+2. **Optional:** write what's new in `docs/releases/v<version>.md`; it goes at the top of the notes.
+3. **Release:** `git tag v0.1.2` and `git push origin v0.1.2`. The tag is the version; nothing
+   else needs changing. To try the builds first, run Actions › Release › Run workflow with
+   "publish" unticked: it builds and tests and keeps the files as artifacts.
+
+Details: `docs/ARCHITECTURE.md` §8.
 
 ## Status
 

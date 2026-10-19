@@ -798,8 +798,12 @@ app installed; see §4).
   wrong (nothing kept, app still running), then downloaded the real one, ran setup after the
   Windows prompt and came back as 0.1.0.1 from Program Files. That install then checked the real
   GitHub feed and reported "up to date".
-- **Releasing an update:** raise `<Version>` in `windows/Directory.Build.props`, run `build.ps1`,
-  and attach `out\AirLens-<version>-windows-x64.zip` to a GitHub release tagged `v<version>`
-  under that exact name. Installed copies offer it within a day. `-Version 0.1.0.1` builds a test
-  package without changing the project's version. Copies of 0.1.0 predate the updater and need
-  the next version installed by hand once.
+- **Releasing an update:** push a tag `v<version>`. `.github/workflows/release.yml` builds and
+  tests both apps on GitHub with that version (`build.ps1 -Version`, Gradle `-PappVersion`;
+  Android's versionCode is major×10000 + minor×100 + patch), publishes the release with
+  `AirLens-<version>-windows-x64.zip` and `AirLens-<version>-android.apk` under exactly those
+  names, and rewrites `site/release.json`, from which the website shows the version, links, sizes
+  and checksums. The APK is signed with the key in the repository secrets, the one earlier APKs
+  used, so phones update in place. Installed Windows copies offer the release within a day.
+  `build.ps1 -Version 0.1.0.1` still builds a local test package. Copies of 0.1.0 predate the
+  updater and need a later version installed by hand once.

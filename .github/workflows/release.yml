@@ -1,0 +1,215 @@
+name: Release
+
+# Builds and tests both apps on GitHub, publishes them as a release, then points the website at it.
+#
+#   Release:  git tag v0.1.2 && git push origin v0.1.2
+#             or Actions > Release > Run workflow, with a version and "publish" ticked.
+#   Dry run:  Run workflow with "publish" unticked: builds and tests, keeps the files as artifacts.
+#
+# The tag is the version: the Windows build gets -Version, the APK -PappVersion. After publishing,
+# site/release.json is rewritten on main (version, links, sizes, SHA-256), and Vercel deploys the
+# site from that commit. The page reads everything it shows about the release from that file.
+
+on:
+  push:
+    tags: ["v*.*.*"]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version, e.g. 0.1.2 (the tag v0.1.2 is created on this branch if it does not exist)"
+        required: true
+      publish:
+        description: "Publish the release and update the site (unticked: dry run)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  # An LGPL FFmpeg for the Windows app; never a GPL build (installer/build.ps1 refuses one). BtbN
+  # rebuilds "latest" daily: the name pins the 8.1 branch and the published checksum is checked.
+  FFMPEG_ASSET: ffmpeg-n8.1-latest-win64-lgpl-shared-8.1.zip
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      tag: ${{ steps.v.outputs.tag }}
+      publish: ${{ steps.v.outputs.publish }}
+    steps:
+      - id: v
+        name: Version from the tag
+        shell: bash
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_PUBLISH: ${{ inputs.publish }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            tag="$GITHUB_REF_NAME"; publish=true
+          else
+            tag="v${INPUT_VERSION#v}"; publish="$INPUT_PUBLISH"
+          fi
+          if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::'$tag' is not a version tag like v0.1.2"; exit 1
+          fi
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "version=${tag#v}" >> "$GITHUB_OUTPUT"
+          echo "publish=$publish" >> "$GITHUB_OUTPUT"
+          echo "### AirLens ${tag#v} (publish: $publish)" >> "$GITHUB_STEP_SUMMARY"
+
+  windows:
+    needs: version
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Get the LGPL FFmpeg build
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release download latest --repo BtbN/FFmpeg-Builds --pattern $env:FFMPEG_ASSET --pattern checksums.sha256 --dir ffdl
+          $expected = ((Select-String -Path ffdl/checksums.sha256 -SimpleMatch $env:FFMPEG_ASSET).Line -split '\s+')[0]
+          $actual = (Get-FileHash "ffdl/$env:FFMPEG_ASSET" -Algorithm SHA256).Hash.ToLower()
+          if ($actual -ne $expected) { throw "FFmpeg checksum mismatch: got $actual, BtbN publishes $expected" }
+          Expand-Archive "ffdl/$env:FFMPEG_ASSET" ffdl/x
+          $root = Get-ChildItem ffdl/x -Directory | Select-Object -First 1
+          $dest = "windows/src/AirLens.App/ffmpeg"
+          New-Item -ItemType Directory -Force $dest | Out-Null
+          Copy-Item "$($root.FullName)/bin/*.dll", "$($root.FullName)/LICENSE.txt" $dest
+          "FFmpeg: $env:FFMPEG_ASSET ($actual)" >> $env:GITHUB_STEP_SUMMARY
+      - name: Test
+        run: dotnet test windows/tests/AirLens.Core.Tests -c Release
+      - name: Build the setup (camera DLL, app, installer)
+        shell: pwsh
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File windows/installer/build.ps1 -Version ${{ needs.version.outputs.version }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows
+          path: windows/installer/out/AirLens-${{ needs.version.outputs.version }}-windows-x64.zip
+          if-no-files-found: error
+
+  android:
+    needs: version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Signing key
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          PUBLISH: ${{ needs.version.outputs.publish }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/airlens.keystore"
+            echo "AIRLENS_KEYSTORE_FILE=$RUNNER_TEMP/airlens.keystore" >> "$GITHUB_ENV"
+          elif [ "$PUBLISH" = "true" ]; then
+            echo "::error::Add the ANDROID_KEYSTORE_* secrets first (README, Releases). An APK signed with a throwaway key can't update the AirLens people already have."
+            exit 1
+          else
+            echo "::warning::No ANDROID_KEYSTORE_BASE64 secret: this dry-run APK is signed with the runner's own debug key."
+          fi
+      - name: Test and build
+        working-directory: android
+        env:
+          AIRLENS_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          AIRLENS_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          AIRLENS_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew testDebugUnitTest assembleDebug -PappVersion=${{ needs.version.outputs.version }}
+      - name: Name the APK
+        run: mv android/app/build/outputs/apk/debug/app-debug.apk "AirLens-${{ needs.version.outputs.version }}-android.apk"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android
+          path: AirLens-${{ needs.version.outputs.version }}-android.apk
+          if-no-files-found: error
+
+  publish:
+    needs: [version, windows, android]
+    if: needs.version.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      V: ${{ needs.version.outputs.version }}
+      TAG: ${{ needs.version.outputs.tag }}
+      REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Release notes
+        shell: bash
+        run: |
+          zip="AirLens-$V-windows-x64.zip"; apk="AirLens-$V-android.apk"
+          {
+            # Hand-written notes for this version, if any: docs/releases/vX.Y.Z.md
+            if [ -f "docs/releases/$TAG.md" ]; then cat "docs/releases/$TAG.md"; echo; fi
+            echo "## Downloads"
+            echo
+            echo "| File | For | Install |"
+            echo "|---|---|---|"
+            echo "| \`$zip\` | Windows 11, x64 | Unzip and run \`Setup.cmd\` (one admin prompt). Installed copies update from Settings, Updates. |"
+            echo "| \`$apk\` | Android 10 or newer | Open it on the phone, or \`adb install -r $apk\`. |"
+            echo
+            echo "For USB, the PC needs Android's platform tools (adb) and the phone needs USB debugging on. Wi-Fi needs neither."
+            echo
+            echo "## Licences"
+            echo
+            echo "The Windows build bundles FFmpeg 8.1 (LGPL v3) and other open-source components; see \`THIRD-PARTY-NOTICES.txt\` in the app folder. The Android app lists its libraries under All settings, Open-source licenses."
+            echo
+            echo "## Checksums (SHA-256)"
+            echo
+            echo '```'
+            (cd dist && sha256sum "$zip" "$apk")
+            echo '```'
+          } > notes.md
+          cat notes.md >> "$GITHUB_STEP_SUMMARY"
+      - name: Publish the release
+        run: gh release create "$TAG" dist/* --repo "$REPO" --title "AirLens $V" --notes-file notes.md --target "$GITHUB_SHA"
+      - name: Point the website at it (site/release.json)
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import hashlib, json, os, pathlib, datetime
+          v, tag, repo = os.environ["V"], os.environ["TAG"], os.environ["REPO"]
+          base = f"https://github.com/{repo}/releases/download/{tag}"
+          def entry(name):
+              data = pathlib.Path("dist", name).read_bytes()
+              return {"file": name, "url": f"{base}/{name}", "bytes": len(data),
+                      "mb": round(len(data) / 1048576), "sha256": hashlib.sha256(data).hexdigest()}
+          release = {
+              "version": v,
+              "tag": tag,
+              "published": datetime.date.today().isoformat(),
+              "notes": f"https://github.com/{repo}/releases/tag/{tag}",
+              "windows": entry(f"AirLens-{v}-windows-x64.zip"),
+              "android": entry(f"AirLens-{v}-android.apk"),
+          }
+          pathlib.Path("site/release.json").write_text(json.dumps(release, indent=2) + "\n")
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/release.json
+          git commit -m "Site: AirLens $V downloads"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          echo "Site updated: https://github.com/$REPO/blob/main/site/release.json" >> "$GITHUB_STEP_SUMMARY"
