@@ -69,6 +69,7 @@ internal fun AdvancedSettings(
     reportEnabled: Boolean,
     onFocus: (Float?) -> Unit,
     onLockFocus: () -> Unit,
+    onLicenses: () -> Unit,
 ) {
     val context = LocalContext.current
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -92,7 +93,10 @@ internal fun AdvancedSettings(
             OemCard(onOpen = { OemPowerGuide.openSettings(context) })
         }
         if (running) StatsCard(status)
-        OutlinedButton(onClick = onReport, enabled = reportEnabled) { Text("Device report") }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = onReport, enabled = reportEnabled) { Text("Device report") }
+            OutlinedButton(onClick = onLicenses) { Text("Open-source licenses") }
+        }
     }
 }
 

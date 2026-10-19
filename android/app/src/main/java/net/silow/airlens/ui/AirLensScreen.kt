@@ -109,6 +109,7 @@ fun AirLensScreen(onStealthChanged: (active: Boolean, dark: Boolean) -> Unit) {
     var cameraGranted by remember { mutableStateOf(hasCameraPermission(context)) }
     var startAfterGrant by remember { mutableStateOf(false) }
     var showReport by remember { mutableStateOf(false) }
+    var showLicenses by remember { mutableStateOf(false) }
     var revealed by remember { mutableStateOf(false) }
     var touches by remember { mutableIntStateOf(0) }
     var carryQuality by remember { mutableStateOf<String?>(null) }
@@ -326,6 +327,7 @@ fun AirLensScreen(onStealthChanged: (active: Boolean, dark: Boolean) -> Unit) {
             update = ::update,
             onApply = { startStream(config) },
             onReport = { showReport = true },
+            onLicenses = { showLicenses = true },
             reportEnabled = cameraGranted,
             onFocus = { value -> StreamingService.setFocus(context, value) },
             onLockFocus = { StreamingService.lockFocus(context) },
@@ -391,6 +393,7 @@ fun AirLensScreen(onStealthChanged: (active: Boolean, dark: Boolean) -> Unit) {
     }
 
     if (showReport) ReportDialog(onDismiss = { showReport = false })
+    if (showLicenses) LicensesDialog(onDismiss = { showLicenses = false })
 }
 
 /** BottomSheetDefaults.DragHandle: 22 dp above and below a 4 dp bar. */

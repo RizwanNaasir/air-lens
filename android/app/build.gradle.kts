@@ -42,6 +42,8 @@ android {
     }
 
     packaging {
+        // Duplicate licence copies some jars carry. The Apache License 2.0 that covers every bundled
+        // library ships once, readable in the app: res/raw/apache_license_2_0.txt (OpenSourceLicenses.kt).
         resources { excludes += "/META-INF/{AL2.0,LGPL2.1}" }
     }
 }
