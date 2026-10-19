@@ -65,12 +65,12 @@ Vercel deploys. Installed Windows copies find the release within a day (Settings
    new APK. The workflow refuses to publish without it.
 
    ```powershell
-   $env:GH_TOKEN = gh auth token --user RizwanNaasir
-   [Convert]::ToBase64String([IO.File]::ReadAllBytes("$env:USERPROFILE\.android\debug.keystore")) | gh secret set ANDROID_KEYSTORE_BASE64 --repo RizwanNaasir/air-lens
-   gh secret set ANDROID_KEYSTORE_PASSWORD --repo RizwanNaasir/air-lens --body android
-   gh secret set ANDROID_KEY_ALIAS --repo RizwanNaasir/air-lens --body androiddebugkey
-   gh secret set ANDROID_KEY_PASSWORD --repo RizwanNaasir/air-lens --body android
+   powershell -ExecutionPolicy Bypass -File tools\set-android-signing-secrets.ps1
    ```
+
+   It sets `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS` and
+   `ANDROID_KEY_PASSWORD` as the RizwanNaasir account (whatever gh's active account is), stops on the
+   first error, and lists the secrets at the end.
 
 2. **Optional:** write what's new in `docs/releases/v<version>.md`; it goes at the top of the notes.
 3. **Release:** `git tag v0.1.2` and `git push origin v0.1.2`. The tag is the version; nothing
