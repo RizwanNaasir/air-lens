@@ -58,6 +58,7 @@ public static class LanRouting
     public static IReadOnlyList<(IPAddress Local, IPAddress Broadcast)> BroadcastTargets()
     {
         var result = new List<(IPAddress, IPAddress)>();
+        Span<byte> b = stackalloc byte[4]; // one buffer for the loop; new IPAddress(b) copies it
         foreach (var nic in NetworkInterface.GetAllNetworkInterfaces())
         {
             if (nic.OperationalStatus != OperationalStatus.Up) continue;
@@ -67,7 +68,6 @@ public static class LanRouting
                 int prefix = unicast.PrefixLength;
                 if (unicast.Address.AddressFamily != AddressFamily.InterNetwork || prefix <= 0 || prefix > 30) continue;
                 uint mask = uint.MaxValue << (32 - prefix);
-                Span<byte> b = stackalloc byte[4];
                 BinaryPrimitives.WriteUInt32BigEndian(b, ToUInt32(unicast.Address) | ~mask);
                 result.Add((unicast.Address, new IPAddress(b)));
             }
