@@ -50,6 +50,9 @@ device-report.txt
 .env
 .env.*
 
+# Vercel project link (site/.vercel)
+.vercel/
+
 # Editor, OS and assistant clutter
 .idea/
 .vscode/

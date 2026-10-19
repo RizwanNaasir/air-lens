@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <!-- The AirLens app icon (windows/installer/make-icon.ps1), as a vector. -->
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#223044"/>
+      <stop offset="1" stop-color="#0E1116"/>
+    </linearGradient>
+    <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4C8DFF"/>
+      <stop offset="1" stop-color="#3DD6C4"/>
+    </linearGradient>
+    <linearGradient id="glass" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#35527A"/>
+      <stop offset="1" stop-color="#121A26"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="240" height="240" rx="56" fill="url(#tile)"/>
+  <circle cx="128" cy="128" r="88" fill="url(#ring)"/>
+  <circle cx="128" cy="128" r="64" fill="#0A0D12"/>
+  <circle cx="128" cy="128" r="44" fill="url(#glass)"/>
+  <circle cx="128" cy="128" r="18" fill="#070A0E"/>
+  <circle cx="109" cy="107" r="11" fill="#FFFFFF" fill-opacity="0.82"/>
+</svg>

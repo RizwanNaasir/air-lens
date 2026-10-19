@@ -51,7 +51,7 @@ lean transport:
 | Rotation / aspect | **GLES pass between camera and encoder** (optional bypass) | Rotation and crop happen on the GPU before compression, without reconfiguring the encoder when the phone rotates. |
 | Transport | **TCP, custom 20-byte header, sender-side frame dropping** (v1) | Only TCP works through `adb forward`; see §3.2 for the UDP evaluation and roadmap. |
 | Windows language | **C# / .NET 8 + WinUI 3** for the app, **C++** for the virtual camera DLL | Managed code for the pipeline (fast to iterate, safe), native code only where Windows forces in-proc COM. |
-| Decoder | **FFmpeg 8.0 (FFmpeg.AutoGen 8.0)**, native `h264`/`hevc` decoders with **hwaccel**, not the `*_cuvid` wrappers | hwaccel decoders emit frames with lower latency (no internal CUVID surface queue) and support D3D11 output for zero-copy rendering. |
+| Decoder | **FFmpeg 8.x (FFmpeg.AutoGen 8.0)**, an **LGPL** shared build, native `h264`/`hevc` decoders with **hwaccel**, not the `*_cuvid` wrappers | hwaccel decoders emit frames with lower latency (no internal CUVID surface queue) and support D3D11 output for zero-copy rendering. Those decoders are LGPL code, so an LGPL build does everything AirLens needs; a GPL build would put the distributed app under the GPL (`installer\build.ps1` refuses one). Shipped: BtbN's `ffmpeg-n8.1-latest-win64-lgpl-shared-8.1`, verified at 4K HEVC and 1080p H.264 on the P30, with its licence and `THIRD-PARTY-NOTICES.txt`. |
 | Rate priority | **Quality first** (default): under congestion or heat, lower **fps** before bits per frame | The owner prefers image quality over smoothness. "Keep fps" is the alternative (§3.5). |
 | Lenses | **Every lens the HAL exposes** (separate IDs, physical sub-cameras, or zoom ratio), switchable live | On the P30: ultra-wide, main, telephoto, front and the logical "auto" camera (§6). |
 | GPU path | **D3D11VA on the NVIDIA adapter** (default), **CUDA** (optional) | On NVIDIA drivers, D3D11 video decode runs on the same NVDEC engine. D3D11 keeps the frame a GPU texture all the way to the swap chain. |
@@ -738,7 +738,7 @@ ffprobe -hide_banner stream.h264
 
 # Windows
 cd windows && dotnet build -c Release && dotnet test
-# FFmpeg 8.0 *shared* build DLLs (avcodec-62, avutil-60, swresample-6, ...) -> src/AirLens.App/ffmpeg/
+# An FFmpeg 8.x LGPL *shared* build (bin\*.dll and LICENSE.txt; BtbN's win64-lgpl-shared) -> src/AirLens.App/ffmpeg/
 # or set AIRLENS_FFMPEG_DIR
 src/AirLens.Probe/bin/Release/.../AirLens.Probe.exe --gpus          # adapter + NVDEC profile check
 src/AirLens.Probe/bin/Release/.../AirLens.Probe.exe --usb --seconds 30

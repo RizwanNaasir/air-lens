@@ -5,7 +5,7 @@
   install/uninstall scripts.
 
   Needs the .NET 8 SDK, Visual Studio 2022 Build Tools with Desktop C++ (for the camera DLL; pass
-  -SkipNative to reuse an existing build), and the FFmpeg 8.0 shared DLLs in src\AirLens.App\ffmpeg.
+  -SkipNative to reuse an existing build), and an FFmpeg 8.x LGPL shared build (DLLs and LICENSE.txt) in src\AirLens.App\ffmpeg.
 
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File windows\installer\build.ps1
@@ -18,7 +18,7 @@ $vcamProject = Join-Path $root "src\AirLens.VirtualCamera\AirLens.VirtualCamera.
 $dll = Join-Path $root "src\AirLens.VirtualCamera\bin\Release\AirLens.VirtualCamera.dll"
 
 if (-not (Get-ChildItem (Join-Path $root "src\AirLens.App\ffmpeg") -Filter "avcodec-*.dll" -ErrorAction SilentlyContinue)) {
-    throw "FFmpeg DLLs missing: put an FFmpeg 8.0 shared build's DLLs in src\AirLens.App\ffmpeg"
+    throw "FFmpeg DLLs missing: put an FFmpeg 8.x LGPL shared build's DLLs and LICENSE.txt in src\AirLens.App\ffmpeg"
 }
 
 if (-not $SkipNative) {
@@ -41,6 +41,10 @@ Write-Host "Publishing the app..."
 if ($LASTEXITCODE -ne 0) { throw "dotnet publish failed" }
 Get-ChildItem (Join-Path $stage "app") -Recurse -Filter *.pdb | Remove-Item -Force
 if (-not (Test-Path (Join-Path $stage "app\ffmpeg\avcodec-*.dll"))) { throw "publish output has no FFmpeg DLLs" }
+# A distributed AirLens must carry an LGPL FFmpeg and its licence (THIRD-PARTY-NOTICES.txt).
+if (-not (Test-Path (Join-Path $stage "app\ffmpeg\LICENSE.txt")) -or -not (Test-Path (Join-Path $stage "app\THIRD-PARTY-NOTICES.txt"))) { throw "publish output lacks FFmpeg's LICENSE.txt or THIRD-PARTY-NOTICES.txt" }
+$avcodec = [Text.Encoding]::ASCII.GetString([IO.File]::ReadAllBytes((Get-Item (Join-Path $stage "app\ffmpeg\avcodec-*.dll")).FullName))
+if ($avcodec.Contains("--enable-gpl")) { throw "the bundled FFmpeg is a GPL build; use an LGPL build (see AirLens.App.csproj)" }
 
 New-Item -ItemType Directory (Join-Path $stage "vcam") | Out-Null
 Copy-Item $dll, (Join-Path $root "src\AirLens.VirtualCamera\install.ps1") (Join-Path $stage "vcam")

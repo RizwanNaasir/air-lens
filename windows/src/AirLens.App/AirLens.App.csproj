@@ -40,12 +40,16 @@
   </ItemGroup>
 
   <!--
-    FFmpeg 8.0 shared DLLs go in .\ffmpeg next to the exe (not committed). The decoder only calls
+    An FFmpeg 8.x LGPL shared build goes in .\ffmpeg next to the exe (not committed): BtbN's
+    ffmpeg-n8.1-latest-win64-lgpl-shared-8.1, its bin\*.dll and LICENSE.txt. Never a GPL build: AirLens
+    is distributed, and a GPL FFmpeg would put the whole app under the GPL. The decoder only calls
     libavcodec and libavutil, and libavcodec imports libswresample; the other libraries of a shared
-    build (avformat, avfilter, avdevice, swscale; ~115 MB) are left out of the output.
+    build (avformat, avfilter, avdevice, swscale; ~70 MB) are left out of the output. The licence and
+    THIRD-PARTY-NOTICES.txt ship with them, as the LGPL requires.
   -->
   <ItemGroup>
-    <None Include="ffmpeg\avcodec-*.dll;ffmpeg\avutil-*.dll;ffmpeg\swresample-*.dll" CopyToOutputDirectory="PreserveNewest" Link="ffmpeg\%(Filename)%(Extension)" Condition="Exists('ffmpeg')" />
+    <None Include="ffmpeg\avcodec-*.dll;ffmpeg\avutil-*.dll;ffmpeg\swresample-*.dll;ffmpeg\LICENSE.txt" CopyToOutputDirectory="PreserveNewest" Link="ffmpeg\%(Filename)%(Extension)" Condition="Exists('ffmpeg')" />
+    <None Include="..\..\THIRD-PARTY-NOTICES.txt" CopyToOutputDirectory="PreserveNewest" Link="THIRD-PARTY-NOTICES.txt" />
   </ItemGroup>
 
 </Project>

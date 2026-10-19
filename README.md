@@ -20,7 +20,8 @@ cd android && ./gradlew :app:assembleDebug && adb install -r app/build/outputs/a
 
 # PC
 cd windows && dotnet build -c Release && dotnet test
-# Put FFmpeg 8.0 *shared* DLLs (avcodec-62.dll, ...) in windows/src/AirLens.App/ffmpeg/ or set AIRLENS_FFMPEG_DIR
+# Put an FFmpeg 8.x LGPL shared build (bin\*.dll and LICENSE.txt, e.g. BtbN's ffmpeg-n8.1-latest-win64-lgpl-shared-8.1)
+# in windows/src/AirLens.App/ffmpeg/, or set AIRLENS_FFMPEG_DIR. Not a GPL build: the setup build refuses one.
 ```
 
 Open AirLens on the phone and press **Start streaming**. The Windows app connects by itself over
@@ -37,6 +38,18 @@ It asks for administrator rights once and installs AirLens to `C:\Program Files\
 virtual camera, a Start menu entry and an uninstall entry in Settings → Apps. Started from the
 Start menu, the app remembers USB/Wi-Fi, the phone IP and the virtual-camera switch, and reconnects
 if it was connected when you closed it. Details: `docs/ARCHITECTURE.md` §8.
+
+USB needs adb on the PC (Android platform-tools, or one another program installed) and USB
+debugging on the phone; Wi-Fi needs neither.
+
+## Website and downloads
+
+- **Downloads** are the files on each GitHub release, for example
+  `releases/download/v0.1.0/AirLens-0.1.0-windows-x64.zip` and `AirLens-0.1.0-android.apk`.
+- **Landing page:** `site/` (plain HTML and CSS, no build), live at https://airlens-cyan.vercel.app.
+  It is the Vercel project `silow/airlens`; `vercel.json` makes Vercel serve only `site/`, and a push
+  that does not touch `site/` skips the deploy. Deploy by hand with `vercel deploy --prod` from `site/`.
+- **Each release:** update the version, links, sizes and SHA-256 sums in `site/index.html`.
 
 ## Status
 
