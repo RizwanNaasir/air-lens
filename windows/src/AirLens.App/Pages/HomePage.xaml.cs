@@ -178,7 +178,8 @@ public sealed partial class HomePage : Page
         }
     }
 
-    private bool PreviewOff => _app.VirtualCameraOn && !_previewAnyway;
+    /// <summary>Off while the camera is on (unless asked for), and while the window is in the notification area.</summary>
+    private bool PreviewOff => !_app.WindowVisible || _app.VirtualCameraOn && !_previewAnyway;
 
     /// <summary>The Phone and Stream lines (ConnectionStatus), the same ones the Phone page shows.</summary>
     private void UpdateStatus(ConnectionStatus status)

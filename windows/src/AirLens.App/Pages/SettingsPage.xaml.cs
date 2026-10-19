@@ -23,6 +23,7 @@ public sealed partial class SettingsPage : Page
             _loading = true;
             DecoderBox.SelectedItem = DecoderBox.Items.Cast<ComboBoxItem>().FirstOrDefault(i => (string)i.Tag == _app.Settings.Decoder) ?? DecoderBox.Items[0];
             AutoCheckToggle.IsOn = _app.Settings.CheckForUpdates;
+            KeepInTrayToggle.IsOn = _app.Settings.KeepRunningInTray;
             _loading = false;
             _updates.Changed += RefreshUpdates;
             RefreshUpdates();
@@ -33,6 +34,13 @@ public sealed partial class SettingsPage : Page
     private void OnDecoderChanged(object sender, SelectionChangedEventArgs e)
     {
         if (!_loading && DecoderBox.SelectedItem is ComboBoxItem { Tag: string tag }) _app.SetDecoder(tag);
+    }
+
+    private void OnKeepInTrayToggled(object sender, RoutedEventArgs e)
+    {
+        if (_loading) return;
+        _app.Settings.KeepRunningInTray = KeepInTrayToggle.IsOn;
+        _app.Settings.Save();
     }
 
     private void OnOpenLogsClick(object sender, RoutedEventArgs e)

@@ -125,6 +125,19 @@ public sealed class AppController
     public bool VirtualCameraOn { get; private set; }
     public string VirtualCameraMessage { get; private set; } = "";
 
+    /// <summary>False while the window is hidden in the notification area: nobody sees the preview then.</summary>
+    public bool WindowVisible
+    {
+        get => _windowVisible;
+        set
+        {
+            if (_windowVisible == value) return;
+            _windowVisible = value;
+            Raise();
+        }
+    }
+    private bool _windowVisible = true;
+
     /// <summary>The D3D11 device the decoder renders on; the preview must use the same one.</summary>
     public Vortice.Direct3D11.ID3D11Device? DecoderDevice { get; private set; }
 

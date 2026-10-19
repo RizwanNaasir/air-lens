@@ -771,6 +771,26 @@ reconnects if it was connected when closed. The setup is 314 MB (119 MB zipped).
 libavcodec (101 MB) and the .NET and Windows App SDK runtimes. Only the three FFmpeg libraries the
 decoder loads are shipped: avcodec, avutil and swresample.
 
+**Notification area.** Closing the window (the X, Alt+F4) hides it; AirLens keeps streaming and
+the virtual camera keeps running, behind an icon next to the clock (`AirLens.App/Tray`). The first
+time, Windows shows a notice saying so. A click on the icon opens the window; its menu shows the
+Phone and Stream lines the pages show (`ConnectionStatus`) and has Open AirLens, Connect / Stop looking /
+Disconnect, Virtual camera, the phone's lenses while one is connected, and Exit. The menu's
+contents are built in `AirLens.Core/Status/TrayMenu.cs`, with tests; the icon and menu are plain
+Win32 (Shell_NotifyIcon, a native popup menu), so no extra package. The preview stops while the
+window is hidden. Settings › "Keep running in the notification area when closed" (on by default)
+turned off makes the X exit as before.
+
+- **One copy.** AirLens runs once per Windows session. A second launch (Start menu, shortcut) sets
+  the named event `Local\net.silow.airlens.show`, and the running copy shows its window.
+- **Quitting from outside.** The installer and uninstaller set `Local\net.silow.airlens.quit`
+  first: a window in the notification area can't be asked to close, and without the event every
+  update would end the app with a kill after 5 s. The running copy exits as through Exit. Copies
+  from before the icon still close with their window.
+- **Verified** on this PC: closing hid the window and showed the notice once; a second launch
+  exited and brought the first copy forward; Open, Connect, Stop looking and Exit from the menu;
+  the quit event ended a hidden copy with a normal shutdown; with the setting off, closing exited.
+
 The setup ships an LGPL FFmpeg build with its licence and `THIRD-PARTY-NOTICES.txt`;
 `build.ps1` refuses a GPL build (§1). The scripts are unsigned, so SmartScreen will warn on a
 downloaded copy. USB mode also expects adb on the PC (Android platform-tools, or one that another

@@ -53,6 +53,9 @@ function Remove-Tree([string]$path) {
 
 try {
     Write-Host "Removing AirLens..."
+    # Quit a copy in the notification area (it has no window to close), then close or end the rest.
+    $quit = $null
+    if ([System.Threading.EventWaitHandle]::TryOpenExisting("Local\net.silow.airlens.quit", [ref]$quit)) { [void]$quit.Set(); $quit.Dispose() }
     foreach ($p in Get-Process AirLens.App -ErrorAction SilentlyContinue) {
         $p.CloseMainWindow() | Out-Null
         if (-not $p.WaitForExit(5000)) { $p.Kill() }

@@ -42,6 +42,12 @@ public sealed class AppSettings
     /// <summary>When the update check last reached the release feed.</summary>
     public DateTimeOffset? LastUpdateCheck { get; set; }
 
+    /// <summary>Closing the window leaves AirLens running in the notification area; Exit is in its icon's menu.</summary>
+    public bool KeepRunningInTray { get; set; } = true;
+
+    /// <summary>The one-time notice that closing the window kept AirLens running has been shown.</summary>
+    public bool TrayNoticeShown { get; set; }
+
     private static readonly string FilePath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "AirLens", "settings.json");
 

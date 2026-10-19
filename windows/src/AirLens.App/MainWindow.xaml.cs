@@ -30,11 +30,35 @@ public sealed partial class MainWindow : Window
             AppIcon.Source = new BitmapImage(new Uri(icon));
         }
         ContentFrame.Navigate(typeof(HomePage));
-        Closed += (_, _) => App.Controller.Shutdown();
+        // Closing (the X, Alt+F4) keeps AirLens running in the notification area, unless the
+        // setting is off, Exit was chosen, or there is no icon to come back from.
+        AppWindow.Closing += (_, e) =>
+        {
+            if (App.Instance.Quitting || !App.Controller.Settings.KeepRunningInTray) return;
+            if (App.Instance.HideToTray()) e.Cancel = true;
+        };
 
         // An update is waiting: a badge on Settings, where it is installed.
         App.Controller.Updates.Changed += ShowUpdateBadge;
         Nav.Loaded += (_, _) => ShowUpdateBadge();
+    }
+
+    /// <summary>Off the screen and the taskbar; the stream and the virtual camera keep running.</summary>
+    public void HideToTray()
+    {
+        AppWindow.Hide();
+        App.Controller.WindowVisible = false;
+    }
+
+    /// <summary>Back from the notification area (or from minimized), in front.</summary>
+    public void ShowFromTray()
+    {
+        AppWindow.Show();
+        if (AppWindow.Presenter is Microsoft.UI.Windowing.OverlappedPresenter { State: Microsoft.UI.Windowing.OverlappedPresenterState.Minimized } presenter)
+            presenter.Restore();
+        Activate();
+        SetForegroundWindow(WinRT.Interop.WindowNative.GetWindowHandle(this));
+        App.Controller.WindowVisible = true;
     }
 
     private void ShowUpdateBadge()
@@ -60,4 +84,7 @@ public sealed partial class MainWindow : Window
 
     [System.Runtime.InteropServices.DllImport("user32.dll")]
     private static extern uint GetDpiForWindow(IntPtr hwnd);
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")]
+    private static extern bool SetForegroundWindow(IntPtr hwnd);
 }

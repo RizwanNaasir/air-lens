@@ -37,7 +37,9 @@ Then run `Setup.cmd` in `windows\installer\out\AirLens-0.1.0\` (or hand someone 
 It asks for administrator rights once and installs AirLens to `C:\Program Files\AirLens`, with the
 virtual camera, a Start menu entry and an uninstall entry in Settings → Apps. Started from the
 Start menu, the app remembers USB/Wi-Fi, the phone IP and the virtual-camera switch, and reconnects
-if it was connected when you closed it. Details: `docs/ARCHITECTURE.md` §8.
+if it was connected when you closed it. Closing the window keeps AirLens running in the
+notification area, with the stream and the virtual camera: its icon's menu has the connection, the
+camera switch, the lens and Exit (Settings can turn this off). Details: `docs/ARCHITECTURE.md` §8.
 
 USB needs adb on the PC (Android platform-tools, or one another program installed) and USB
 debugging on the phone; Wi-Fi needs neither.
@@ -106,7 +108,7 @@ Set on GitHub (Settings › Rules › Rulesets, and Settings › Actions), not i
   Start/Stop and Dark screen. Pulling the sheet up shows every setting. In landscape the sheet
   becomes a side panel. All five P30 camera options are discovered and switchable, with the
   quality-first rate policy and the thermal fallback seen working on the device.
-- Windows: 49 unit tests pass. The app is in the Windows 11 Settings style. Home shows the preview,
+- Windows: 83 unit tests pass. The app is in the Windows 11 Settings style. Home shows the preview,
   a status line, frame rate, bitrate, PC delay and drops, plus cards for the phone, the virtual
   camera, the lens and the quality. Phone, Virtual camera, Diagnostics and Settings pages hold the
   rest. It connects by itself at launch: over USB, or over Wi-Fi without typing an address,

@@ -54,7 +54,11 @@ function New-Shortcut([string]$path) {
 
 try {
     Write-Host "Installing AirLens..."
-    # A running copy holds its files open; ask it to close, then end it.
+    # A running copy holds its files open; ask it to quit, then end it. A copy in the notification
+    # area has no window to close: it quits on this event (App/Tray/SingleInstance.cs). Copies from
+    # before the icon close with their window.
+    $quit = $null
+    if ([System.Threading.EventWaitHandle]::TryOpenExisting("Local\net.silow.airlens.quit", [ref]$quit)) { [void]$quit.Set(); $quit.Dispose() }
     foreach ($p in Get-Process AirLens.App -ErrorAction SilentlyContinue) {
         $p.CloseMainWindow() | Out-Null
         if (-not $p.WaitForExit(5000)) { $p.Kill() }

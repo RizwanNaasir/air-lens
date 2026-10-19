@@ -8,6 +8,12 @@
         <StackPanel Padding="{StaticResource PagePadding}" Spacing="{StaticResource SettingsCardSpacing}" MaxWidth="1000" HorizontalAlignment="Stretch">
             <TextBlock Text="Settings" Style="{StaticResource TitleTextBlockStyle}" Margin="0,0,0,16" />
 
+            <tk:SettingsCard Header="Keep running in the notification area when closed"
+                             Description="The stream and the virtual camera keep going after you close the window. Open AirLens again or exit from its icon next to the clock.">
+                <tk:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE7C4;" /></tk:SettingsCard.HeaderIcon>
+                <ToggleSwitch x:Name="KeepInTrayToggle" Toggled="OnKeepInTrayToggled" AutomationProperties.Name="Keep running in the notification area when closed" />
+            </tk:SettingsCard>
+
             <tk:SettingsCard Header="Video decoder" Description="Automatic uses the NVIDIA GPU when the PC has one. Changing it reconnects.">
                 <tk:SettingsCard.HeaderIcon><FontIcon Glyph="&#xE950;" /></tk:SettingsCard.HeaderIcon>
                 <ComboBox x:Name="DecoderBox" MinWidth="220" SelectionChanged="OnDecoderChanged" AutomationProperties.Name="Video decoder">
