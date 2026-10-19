@@ -213,10 +213,12 @@ class StreamServer(
         }
         previous?.close("replaced by ${next.remoteAddress}")
         AirLog.i(TAG, "session ${next.id} connected from ${next.remoteAddress}")
-        listener.onClientConnected(next.remoteAddress)
-        // Bypass the rate limit: a new viewer must not wait up to 250 ms for its first picture.
+        // Ask for the IDR first, bypassing the rate limit: a new viewer must not wait up to 250 ms
+        // for its first picture. Only then announce the client, so whoever reacts to the
+        // connection (the UI, the tests) can rely on the request having been made.
         lastKeyframeRequestNanos.set(System.nanoTime())
         listener.onKeyframeNeeded()
+        listener.onClientConnected(next.remoteAddress)
     }
 
     private val sessionListener = object : ClientSession.Listener {
