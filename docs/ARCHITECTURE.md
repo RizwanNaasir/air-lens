@@ -800,10 +800,12 @@ app installed; see §4).
   GitHub feed and reported "up to date".
 - **Releasing an update:** push a tag `v<version>`. `.github/workflows/release.yml` builds and
   tests both apps on GitHub with that version (`build.ps1 -Version`, Gradle `-PappVersion`;
-  Android's versionCode is major×10000 + minor×100 + patch), publishes the release with
+  Android's versionCode is major×10000 + minor×100 + patch) and publishes the release with
   `AirLens-<version>-windows-x64.zip` and `AirLens-<version>-android.apk` under exactly those
-  names, and rewrites `site/release.json`, from which the website shows the version, links, sizes
-  and checksums. The APK is signed with the key in the repository secrets, the one earlier APKs
-  used, so phones update in place. Installed Windows copies offer the release within a day.
+  names. Nothing is committed afterwards: the website reads the version, links, sizes and
+  checksums from GitHub's latest release when the page loads, as the updater does. The APK is
+  signed with the key in the repository secrets, the one earlier APKs used, so phones update in
+  place. Installed Windows copies offer the release within a day. Only the repository admin can
+  create a version tag, so only the admin can release (README, Repository rules).
   `build.ps1 -Version 0.1.0.1` still builds a local test package. Copies of 0.1.0 predate the
   updater and need a later version installed by hand once.

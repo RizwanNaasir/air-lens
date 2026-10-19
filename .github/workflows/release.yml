@@ -1,14 +1,15 @@
 name: Release
 
-# Builds and tests both apps on GitHub, publishes them as a release, then points the website at it.
+# Builds and tests both apps on GitHub and publishes them as a release.
 #
 #   Release:  git tag v0.1.2 && git push origin v0.1.2
-#             or Actions > Release > Run workflow, with a version and "publish" ticked.
-#   Dry run:  Run workflow with "publish" unticked: builds and tests, keeps the files as artifacts.
+#   Dry run:  Actions > Release > Run workflow, with a version: builds and tests, keeps the files
+#             as artifacts, publishes nothing.
 #
-# The tag is the version: the Windows build gets -Version, the APK -PappVersion. After publishing,
-# site/release.json is rewritten on main (version, links, sizes, SHA-256), and Vercel deploys the
-# site from that commit. The page reads everything it shows about the release from that file.
+# Only a pushed version tag publishes, and the repository's rules let only its admin create one
+# (README, Repository rules). The tag is the version: the Windows build gets -Version, the APK
+# -PappVersion. Nothing is committed afterwards: the website and installed Windows copies read
+# GitHub's latest release themselves.
 
 on:
   push:
@@ -16,12 +17,8 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version, e.g. 0.1.2 (the tag v0.1.2 is created on this branch if it does not exist)"
+        description: "Version to build, e.g. 0.1.2 (a dry run: publishing takes a pushed tag)"
         required: true
-      publish:
-        description: "Publish the release and update the site (unticked: dry run)"
-        type: boolean
-        default: false
 
 concurrency:
   group: release
@@ -48,12 +45,11 @@ jobs:
         shell: bash
         env:
           INPUT_VERSION: ${{ inputs.version }}
-          INPUT_PUBLISH: ${{ inputs.publish }}
         run: |
           if [ "$GITHUB_EVENT_NAME" = "push" ]; then
             tag="$GITHUB_REF_NAME"; publish=true
           else
-            tag="v${INPUT_VERSION#v}"; publish="$INPUT_PUBLISH"
+            tag="v${INPUT_VERSION#v}"; publish=false
           fi
           if ! [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::'$tag' is not a version tag like v0.1.2"; exit 1
@@ -149,9 +145,8 @@ jobs:
       REPO: ${{ github.repository }}
       GH_TOKEN: ${{ github.token }}
     steps:
+      # The tagged commit, for its docs/releases notes.
       - uses: actions/checkout@v7
-        with:
-          ref: main
       - uses: actions/download-artifact@v8
         with:
           path: dist
@@ -183,33 +178,8 @@ jobs:
             echo '```'
           } > notes.md
           cat notes.md >> "$GITHUB_STEP_SUMMARY"
+      # --verify-tag: release the pushed tag, never create one.
       - name: Publish the release
-        run: gh release create "$TAG" dist/* --repo "$REPO" --title "AirLens $V" --notes-file notes.md --target "$GITHUB_SHA"
-      - name: Point the website at it (site/release.json)
-        shell: bash
         run: |
-          python3 - <<'PY'
-          import hashlib, json, os, pathlib, datetime
-          v, tag, repo = os.environ["V"], os.environ["TAG"], os.environ["REPO"]
-          base = f"https://github.com/{repo}/releases/download/{tag}"
-          def entry(name):
-              data = pathlib.Path("dist", name).read_bytes()
-              return {"file": name, "url": f"{base}/{name}", "bytes": len(data),
-                      "mb": round(len(data) / 1048576), "sha256": hashlib.sha256(data).hexdigest()}
-          release = {
-              "version": v,
-              "tag": tag,
-              "published": datetime.date.today().isoformat(),
-              "notes": f"https://github.com/{repo}/releases/tag/{tag}",
-              "windows": entry(f"AirLens-{v}-windows-x64.zip"),
-              "android": entry(f"AirLens-{v}-android.apk"),
-          }
-          pathlib.Path("site/release.json").write_text(json.dumps(release, indent=2) + "\n")
-          PY
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add site/release.json
-          git commit -m "Site: AirLens $V downloads"
-          git pull --rebase origin main
-          git push origin HEAD:main
-          echo "Site updated: https://github.com/$REPO/blob/main/site/release.json" >> "$GITHUB_STEP_SUMMARY"
+          gh release create "$TAG" dist/* --repo "$REPO" --title "AirLens $V" --notes-file notes.md --verify-tag
+          echo "Published https://github.com/$REPO/releases/tag/$TAG; the website and the Windows updater read it from GitHub." >> "$GITHUB_STEP_SUMMARY"

@@ -48,17 +48,19 @@ debugging on the phone; Wi-Fi needs neither.
   `releases/download/v0.1.1/AirLens-0.1.1-windows-x64.zip` and `AirLens-0.1.1-android.apk`.
 - **Landing page:** `site/` (plain HTML, CSS and one small script, no build), live at
   https://airlens-cyan.vercel.app. Everything it says about the current release (version, links,
-  sizes, SHA-256) comes from `site/release.json`; without it, the buttons go to the latest release
-  on GitHub. It is the Vercel project `silow/airlens`; `vercel.json` makes Vercel serve only
+  sizes, SHA-256) the page reads from GitHub's latest release when it loads (`site/release.js`), so
+  a new release shows without a deploy. If GitHub can't be reached, the buttons go to the latest
+  release page. It is the Vercel project `silow/airlens`; `vercel.json` makes Vercel serve only
   `site/`, and a push that does not touch `site/` skips the deploy.
 
 ## Releasing (GitHub Actions)
 
 Releases are built on GitHub, not on a PC: `.github/workflows/release.yml` tests and builds both
 apps (the Windows setup with the camera DLL and an LGPL FFmpeg it downloads and verifies, and the
-APK), publishes the release with checksums, then rewrites `site/release.json` on `main`, which
-Vercel deploys. Installed Windows copies find the release within a day (Settings › Updates).
-`.github/workflows/tests.yml` runs the unit tests on every push and pull request.
+APK) and publishes the release with checksums. Nothing else changes: the website shows it at once,
+and installed Windows copies find it within a day (Settings › Updates), both by reading GitHub's
+latest release. `.github/workflows/tests.yml` runs the unit tests on every pull request and on
+pushes to `main` that touch the apps.
 
 1. **Once:** give the workflow the Android signing key as repository secrets. It must be the key
    that signed the earlier APKs (so far this PC's debug keystore), or phones can't update to the
@@ -74,10 +76,23 @@ Vercel deploys. Installed Windows copies find the release within a day (Settings
 
 2. **Optional:** write what's new in `docs/releases/v<version>.md`; it goes at the top of the notes.
 3. **Release:** `git tag v0.1.2` and `git push origin v0.1.2`. The tag is the version; nothing
-   else needs changing. To try the builds first, run Actions › Release › Run workflow with
-   "publish" unticked: it builds and tests and keeps the files as artifacts.
+   else needs changing. Only a pushed tag publishes. To try the builds first, run Actions ›
+   Release › Run workflow with a version: it builds and tests and keeps the files as artifacts.
 
 Details: `docs/ARCHITECTURE.md` §8.
+
+### Repository rules
+
+Set on GitHub (Settings › Rules › Rulesets, and Settings › Actions), not in the code:
+
+- **`main`** can't be force-pushed or deleted, by anyone. Changes reach it through a pull request
+  with one approving review and passing `windows` and `android` checks (Tests). The repository
+  admin may push to it directly.
+- **Version tags (`v*`)** are created only by the repository admin, and can't be moved or deleted
+  once pushed. Since only a pushed tag publishes, only the admin can release.
+- **Workflows:** runs from a fork wait for the admin's approval, for every outside contributor, and
+  get a read-only token without the secrets. Workflow tokens are read-only unless a job asks for
+  more; only the Release job's publish step writes, to create the release.
 
 ## Status
 

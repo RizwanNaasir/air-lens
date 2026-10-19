@@ -1,14 +1,14 @@
 name: Tests
 
-# Unit tests on every push and pull request that touches the apps. Releases run them again
-# (release.yml) before anything is published.
+# Unit tests on every pull request, and on pushes to main that touch the apps. Releases run them
+# again (release.yml) before anything is published. Pull requests run them whatever they touch:
+# main requires the windows and android checks to pass, and a check that never runs never passes.
 
 on:
   push:
     branches: [main]
     paths: ["windows/**", "android/**", ".github/workflows/tests.yml"]
   pull_request:
-    paths: ["windows/**", "android/**", ".github/workflows/tests.yml"]
 
 permissions:
   contents: read
